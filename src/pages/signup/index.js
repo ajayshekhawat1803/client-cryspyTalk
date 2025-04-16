@@ -1,7 +1,7 @@
 import { Container, Form, Col, Row, Button, Card } from "react-bootstrap";
 import { useState } from "react";
 import logo from "../../logo512.png";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectApiBaseUrl } from "../../features/config/configSlice";
@@ -28,7 +28,6 @@ function Signup() {
     const validate = () => {
         let newErrors = {};
         if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-        // if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
         if (!formData.email.trim()) {
             newErrors.email = "Email is required";
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -41,13 +40,13 @@ function Signup() {
         return newErrors;
     };
     const handleSubmit = async (e) => {
-        e.preventDefault();        
+        e.preventDefault();
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
-        
+
         try {
             const response = await fetch(`${apiBaseUrl}/auth/signup`, {
                 method: "POST",
@@ -59,7 +58,6 @@ function Signup() {
 
             if (!result.success) {
                 if (result.data) {
-                    // set backend errors (like email already exists)
                     setErrors(result.data);
                 }
                 toast.error(result.message || "Registration failed");
@@ -68,10 +66,9 @@ function Signup() {
                     position: "top-right",
                     autoClose: 3000,
                 });
-                // Redirect after short delay
                 setTimeout(() => {
                     navigate("/login");
-                }, 3000);
+                }, 1000);
             }
         } catch (error) {
             toast.error("Something went wrong! Please try again.");
@@ -88,9 +85,13 @@ function Signup() {
                 className="d-flex flex-column justify-content-center align-items-center text-center p-4"
                 style={{ backgroundColor: "#eeeefa" }}
             >
-                <h1 className="fw-bold text-dark fs-2 fs-md-1">
-                    Connect with friends, <br />
-                    share your moments, <br />
+                <h1 className="fw-bold text-dark text-center mb-4"
+                    style={{
+                        fontSize: "clamp(1.5rem, 4vw, 2.75rem)",
+                        lineHeight: "1.4",
+                        letterSpacing: "0.5px",
+                    }}>Connect with friends,<br />
+                    <span style={{ color: "#5A4FCF" }}>share your moments,</span>,<br />
                     and stay Cryspy.
                 </h1>
                 <img
@@ -122,6 +123,8 @@ function Signup() {
                             className="img-fluid"
                             style={{ maxWidth: "120px" }}
                         />
+                        <p className="text-muted" style={{ fontSize: "0.9rem" }}>
+                            Join CryspyTalk. Create your account now!</p>
                     </div>
 
                     <Form onSubmit={handleSubmit}>
@@ -218,7 +221,6 @@ function Signup() {
                     </p>
                 </Card>
             </Col>
-            <ToastContainer />
         </Container>
     );
 }
