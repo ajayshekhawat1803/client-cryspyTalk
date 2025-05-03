@@ -7,11 +7,13 @@ import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./components/PrivateRoute";
 import PublicRoute from "./components/PublicRoute";
 import Logout from "./pages/Logout";
+import { ToastContainer } from "react-toastify";
 
 
 function App() {
   return (
     <BrowserRouter>
+     <ToastContainer />
       <Routes>
         {/* Public routes: accessible only if not logged in */}
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
