@@ -1,0 +1,20 @@
+.sidebar {
+    transition: all 0.3s ease-in-out;
+}
+
+@media (max-width: 949px) {
+    .sidebar {
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        width: 250px;
+        /* Set the width to the same value */
+        /* height: 100%; */
+        background-color: var(--sidebar-bg);
+        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.2);
+        z-index: 1050;
+        /* Ensure the sidebar is above content */
+        padding-top: 56px;
+        /* Optional, adjust based on header height */
+    }
+}

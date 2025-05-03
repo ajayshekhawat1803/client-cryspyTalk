@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux";
 import { selectApiBaseUrl } from "../../features/config/configSlice";
 import { jwtDecode } from 'jwt-decode';
+import { hideLoader, showLoader } from "../../features/loader/loaderSlice";
 
 
 
@@ -41,10 +42,12 @@ function Login() {
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
+            dispatch(showLoader());
             return;
         }
-
+        
         try {
+            dispatch(showLoader());
             const response = await fetch(`${apiBaseUrl}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -52,7 +55,6 @@ function Login() {
             });
 
             const result = await response.json();
-            console.log(result);
 
             if (!result.success) {
                 if (result.data) {
@@ -71,7 +73,9 @@ function Login() {
                     navigate("/");
                 }, 1000);
             }
+            dispatch(hideLoader());
         } catch (error) {
+            dispatch(hideLoader());
             toast.error("Something went wrong! Please try again.");
             console.error(error);
         }

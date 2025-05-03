@@ -8,12 +8,17 @@ import ProtectedRoute from "./components/PrivateRoute";
 import PublicRoute from "./components/PublicRoute";
 import Logout from "./pages/Logout";
 import { ToastContainer } from "react-toastify";
-
+import { useSelector } from "react-redux";
+import LoaderComponent from "./components/loader";
+import "./App.css";
 
 function App() {
+  const loading = useSelector((state) => state.loader.loading);
+
   return (
     <BrowserRouter>
-     <ToastContainer />
+     <ToastContainer style={{zIndex:99999999}} />
+     {loading && <LoaderComponent />}
       <Routes>
         {/* Public routes: accessible only if not logged in */}
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />

@@ -3,8 +3,9 @@ import { useState } from "react";
 import logo from "../../logo512.png";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { selectApiBaseUrl } from "../../features/config/configSlice";
+import { hideLoader, showLoader } from "../../features/loader/loaderSlice";
 
 
 function Signup() {
@@ -15,7 +16,7 @@ function Signup() {
         password: "",
         cPassword: "",
     });
-
+const dispatch = useDispatch();
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
     const apiBaseUrl = useSelector(selectApiBaseUrl);
@@ -48,6 +49,7 @@ function Signup() {
         }
 
         try {
+            dispatch(showLoader());
             const response = await fetch(`${apiBaseUrl}/auth/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -70,7 +72,9 @@ function Signup() {
                     navigate("/login");
                 }, 1000);
             }
+            dispatch(hideLoader());
         } catch (error) {
+            dispatch(hideLoader());
             toast.error("Something went wrong! Please try again.");
             console.error(error);
         }
