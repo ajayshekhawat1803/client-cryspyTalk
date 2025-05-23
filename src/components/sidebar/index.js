@@ -1,6 +1,5 @@
-import React from 'react';
 import { Nav, Image, Button } from 'react-bootstrap';
-import { FaSearch, FaCog, FaComments, FaStar, FaArchive, FaSun, FaMoon } from 'react-icons/fa';
+import { FaSearch, FaCog, FaComments, FaStar, FaArchive, FaSun, FaMoon, FaUserFriends } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
 import { toggleTheme } from '../../features/theme/themeSlice';
 import './sidebar.css';
@@ -22,52 +21,60 @@ const Sidebar = ({ onSelect, activeSection }) => {
                 overflowY: 'auto',
             }}
         >
-            {/* Top Nav */}
-            <Nav className="flex-column mb-4">
-                <Nav.Link
-                    className={`sidebar-link ${activeSection === 'search' ? 'active' : ''}`}
-                    onClick={() => onSelect('search')}
-                >
-                    <FaSearch className="me-2" />
-                    Search
-                </Nav.Link>
-                <Nav.Link
-                    className={`sidebar-link ${activeSection === 'settings' ? 'active' : ''}`}
-                    onClick={() => onSelect('settings')}
-                >
-                    <FaCog className="me-2" />
-                    Settings
-                </Nav.Link>
-            </Nav>
-
-            {/* Chat Section */}
-            <div>
-                <strong className="text-uppercase small text-secondary">Chats</strong>
-                <Nav className="flex-column mt-2 mb-4">
+            <div className='flex-grow-1'> 
+                {/* Top Nav */}
+                <Nav className="flex-column mb-4">
                     <Nav.Link
-                        className={`sidebar-link ${activeSection === 'all' ? 'active' : ''}`}
-                        onClick={() => onSelect('all')}
+                        className={`sidebar-link ${activeSection === 'search' ? 'active' : ''}`}
+                        onClick={() => onSelect('search')}
                     >
-                        <FaComments className="me-2" />
-                        All Chats
+                        <FaSearch className="me-2" />
+                        Search
                     </Nav.Link>
                     <Nav.Link
-                        className={`sidebar-link ${activeSection === 'favourites' ? 'active' : ''}`}
-                        onClick={() => onSelect('favourites')}
+                        className={`sidebar-link ${activeSection === 'settings' ? 'active' : ''}`}
+                        onClick={() => onSelect('settings')}
                     >
-                        <FaStar className="me-2" />
-                        Favourites
-                    </Nav.Link>
-                    <Nav.Link
-                        className={`sidebar-link ${activeSection === 'archived' ? 'active' : ''}`}
-                        onClick={() => onSelect('archived')}
-                    >
-                        <FaArchive className="me-2" />
-                        Archived
+                        <FaCog className="me-2" />
+                        Settings
                     </Nav.Link>
                 </Nav>
-            </div>
 
+                {/* Chat Section */}
+                <div>
+                    <strong className="text-uppercase small text-secondary">Chats</strong>
+                    <Nav className="flex-column mt-2 mb-4">
+                        <Nav.Link
+                            className={`sidebar-link ${activeSection === 'all' ? 'active' : ''}`}
+                            onClick={() => onSelect('all')}
+                        >
+                            <FaComments className="me-2" />
+                            All Chats
+                        </Nav.Link>
+                        <Nav.Link
+                            className={`sidebar-link ${activeSection === 'favourites' ? 'active' : ''}`}
+                            onClick={() => onSelect('favourites')}
+                        >
+                            <FaStar className="me-2" />
+                            Favourites
+                        </Nav.Link>
+                        <Nav.Link
+                            className={`sidebar-link ${activeSection === 'archived' ? 'active' : ''}`}
+                            onClick={() => onSelect('archived')}
+                        >
+                            <FaArchive className="me-2" />
+                            Archived
+                        </Nav.Link>
+                        <Nav.Link
+                            className={`sidebar-link ${activeSection === 'requests' ? 'active' : ''}`}
+                            onClick={() => onSelect('requests')}
+                        >
+                            <FaUserFriends className="me-2" />
+                            Friend Requests
+                        </Nav.Link>
+                    </Nav>
+                </div>
+            </div>
             {/* Footer  */}
             <div className="mt-auto border-top pt-3">
                 <div className="d-flex align-items-center mb-3">

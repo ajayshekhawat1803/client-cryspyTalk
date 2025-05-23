@@ -3,6 +3,7 @@ import { Col, Container, Row } from "react-bootstrap";
 import AllChats from "./AllChats";
 import Sidebar from "../../components/sidebar";
 import Header from "../../components/header/index";
+import FriendRequests from "../../components/chats/FriendReuqests";
 
 const ChatLayout = () => {
     const [activeSection, setActiveSection] = useState("all");
@@ -33,6 +34,8 @@ const ChatLayout = () => {
                 return <>Archived chats will be here</>;
             case "all":
                 return <>All chats will be here</>;
+            case "requests":
+                return <FriendRequests />;
             default:
                 return <AllChats />;
         }
