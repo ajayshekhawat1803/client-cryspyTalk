@@ -12,7 +12,7 @@
         /* height: 100%; */
         background-color: var(--sidebar-bg);
         box-shadow: 2px 0 6px rgba(0, 0, 0, 0.2);
-        z-index: 1050;
+        z-index: 100050;
         /* Ensure the sidebar is above content */
         padding-top: 56px;
         /* Optional, adjust based on header height */

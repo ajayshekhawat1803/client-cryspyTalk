@@ -33,7 +33,7 @@ const ChatLayout = () => {
             case "archived":
                 return <>Archived chats will be here</>;
             case "all":
-                return <>All chats will be here</>;
+                return <AllChats />;
             case "requests":
                 return <FriendRequests />;
             default:
@@ -74,7 +74,7 @@ const ChatLayout = () => {
                         </Col>
                     )}
                     <Col>
-                        <div className="p-4 w-100" style={{ background: "#f8f9fa", height: "100%" }}>
+                        <div className="w-100" style={{ background: "#f8f9fa", height: "100%" }}>
                             {renderContent()}
                         </div>
                     </Col>

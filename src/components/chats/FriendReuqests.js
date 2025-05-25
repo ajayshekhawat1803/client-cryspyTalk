@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Card, Button, Spinner, Alert, Container, Row, Col } from 'react-bootstrap';
-import { FaUserPlus } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import { hideLoader, showLoader } from '../../features/loader/loaderSlice';
 import { selectApiBaseUrl } from '../../features/config/configSlice';
+import { logout } from '../../features/auth/authSlice';
 
 const FriendRequests = () => {
     const dispatch = useDispatch();
@@ -18,7 +17,6 @@ const FriendRequests = () => {
     useEffect(() => {
         const fetchFriendRequests = async () => {
             try {
-                dispatch(showLoader());
                 const response = await fetch(`${apiBaseUrl}/friendship/get-pending-requests`, {
                     method: "GET",
                     headers: {
@@ -26,8 +24,13 @@ const FriendRequests = () => {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-
+                if (response.status === 401) {
+                    toast.error("Session expired !! Please log in again.");
+                    dispatch(logout({}));
+                    return;
+                }
                 const result = await response.json();
+                console.log(result);
 
                 if (!result.success) {
                     toast.error(result.message || "Failed to fetch requests");
@@ -40,7 +43,6 @@ const FriendRequests = () => {
                 setError("Could not load friend requests.");
                 console.error(err);
             } finally {
-                dispatch(hideLoader());
                 setLoading(false);
             }
         };
@@ -122,9 +124,21 @@ const FriendRequests = () => {
                         <Card className="shadow-sm h-100" style={themeStyles.card}>
                             <Card.Body>
                                 <Card.Title className="d-flex align-items-center gap-2">
-                                    <FaUserPlus />
-                                    {req.senderId?.email}
+                                    <img
+                                        src={req.senderId?.profilePic? `${apiBaseUrl}/${req.senderId?.profilePic}`: '/default-avatar.png'} // fallback image
+                                        alt="Profile"
+                                        className="rounded-circle"
+                                        width={40}
+                                        height={40}
+                                        style={{ objectFit: 'cover' }}
+                                    />
+                                    <div>
+                                        <div style={{ textDecoration: 'underline' }}>
+                                            {req.senderId?.username || 'Unknown User'}
+                                        </div>
+                                    </div>
                                 </Card.Title>
+                                {`${req.senderId?.firstName} ${req.senderId?.lastName}`}
                                 <Card.Text className="small text-muted">
                                     Requested on {new Date(req.createdAt).toLocaleDateString()}
                                 </Card.Text>

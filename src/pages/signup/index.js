@@ -13,10 +13,11 @@ function Signup() {
         firstName: "",
         lastName: "",
         email: "",
+        gender: "",
         password: "",
         cPassword: "",
     });
-const dispatch = useDispatch();
+    const dispatch = useDispatch();
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
     const apiBaseUrl = useSelector(selectApiBaseUrl);
@@ -183,6 +184,48 @@ const dispatch = useDispatch();
                         </Form.Group>
 
                         <Form.Group className="mb-2">
+                            <Form.Label>Gender</Form.Label>
+                            <div>
+                                <Form.Check
+                                    inline
+                                    label="Male"
+                                    name="gender"
+                                    type="radio"
+                                    id="gender-male"
+                                    value="male"
+                                    checked={formData.gender === "male"}
+                                    onChange={handleChange}
+                                    isInvalid={!!errors.gender}
+                                />
+                                <Form.Check
+                                    inline
+                                    label="Female"
+                                    name="gender"
+                                    type="radio"
+                                    id="gender-female"
+                                    value="female"
+                                    checked={formData.gender === "female"}
+                                    onChange={handleChange}
+                                    isInvalid={!!errors.gender}
+                                />
+                                <Form.Check
+                                    inline
+                                    label="Other"
+                                    name="gender"
+                                    type="radio"
+                                    id="gender-other"
+                                    value="other"
+                                    checked={formData.gender === "other"}
+                                    onChange={handleChange}
+                                    isInvalid={!!errors.gender}
+                                />
+                            </div>
+                            <Form.Control.Feedback type="invalid">
+                                {errors.gender}
+                            </Form.Control.Feedback>
+                        </Form.Group>
+
+                        <Form.Group className="mb-2">
                             <Form.Label>Password</Form.Label>
                             <Form.Control
                                 type="password"
@@ -208,7 +251,7 @@ const dispatch = useDispatch();
                                 isInvalid={!!errors.cPassword}
                             />
                             <Form.Control.Feedback type="invalid">
-                                {errors.confirmPassword}
+                                {errors.cPassword}
                             </Form.Control.Feedback>
                         </Form.Group>
 
