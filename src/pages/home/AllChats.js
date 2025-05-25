@@ -10,6 +10,7 @@ const AllChats = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const token = useSelector((state) => state.auth.token);
+    const user = useSelector((state) => state.auth.user);
     const theme = useSelector((state) => state.theme.mode);
     const apiBaseUrl = useSelector(selectApiBaseUrl);
     const [chats, setChats] = useState([]);
@@ -95,7 +96,7 @@ const AllChats = () => {
             <ListGroup>
                 {chats.map(chat => {
                     const otherUser = chat.members.find(
-                        member => member._id !== chat.lastMessage?.senderId?._id
+                        member => member._id !== user.id
                     );
                     const unread = chat.unreadMessageCount > 0;
 
