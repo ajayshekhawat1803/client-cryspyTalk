@@ -95,7 +95,7 @@ const AllChats = () => {
             <h5 className="mb-4" style={{ color: themeStyles.item.color }}>Your Chats</h5>
             <ListGroup>
                 {chats.map(chat => {
-                    const otherUser = chat.members.find(
+                    const otherUser = chat?.members?.find(
                         member => member._id !== user.id
                     );
                     const unread = chat.unreadMessageCount > 0;

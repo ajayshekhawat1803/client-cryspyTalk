@@ -11,6 +11,7 @@ import { ToastContainer } from "react-toastify";
 import { useSelector } from "react-redux";
 import LoaderComponent from "./components/loader";
 import "./App.css";
+import ChatArea from "./components/chats/ChatArea";
 
 function App() {
   const loading = useSelector((state) => state.loader.loading);
@@ -26,6 +27,7 @@ function App() {
 
         {/* Protected route: only accessible if logged in */}
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+        <Route path="/chat/:chatId" element={<ProtectedRoute><ChatArea /></ProtectedRoute>} />
         <Route path="/logout" element={<ProtectedRoute><Logout /></ProtectedRoute>}  />
       </Routes>
     </BrowserRouter>
