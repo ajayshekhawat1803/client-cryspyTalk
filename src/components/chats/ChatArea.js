@@ -16,6 +16,9 @@ const ChatArea = () => {
     const [chatUser, setChatUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showSeenBy, setShowSeenBy] = useState(false);
+    const [newMessage, setNewMessage] = useState('');
+    const [mediaFile, setMediaFile] = useState(null);
+
 
     useEffect(() => {
         const fetchMessages = async () => {
@@ -32,7 +35,6 @@ const ChatArea = () => {
                     return;
                 }
                 const data = await res.json();
-                console.log("-----------", data);
                 if (!data.success) throw new Error(data.message);
                 setMessages(data.data.messages);
                 setChatUser(data.data.chatUser);
@@ -80,6 +82,7 @@ const ChatArea = () => {
                                         className="rounded-circle me-1"
                                         width={20}
                                         height={20}
+                                        onClick={() => setShowSeenBy(true)}
                                     />
                                 ))}
                                 {msg.seenBy.length > 3 && (
@@ -101,8 +104,53 @@ const ChatArea = () => {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        //  send logic
+        if (!newMessage.trim() && !mediaFile) return;
+        if (mediaFile && !(mediaFile instanceof File)) {
+            toast.error("Invalid media file.");
+            return;
+        }
+        if (mediaFile && mediaFile.size > 10 * 1024 * 1024) {
+            toast.error("Media file should be less than 10MB.");
+            return;
+        }
+        const formData = new FormData();
+        formData.append("content", newMessage);
+        formData.append("chatId", chatId);
+        if (mediaFile) {
+            formData.append("media", mediaFile);
+        }
+        console.log("Sending message with content:", newMessage, "and media file:", mediaFile)
+
+        try {
+            const res = await fetch(`${apiBaseUrl}/messages/send-message`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    // 'Content-Type': 'multipart/form-data',
+                },
+                body: formData,
+            });
+            if (res.status === 401) {
+                toast.error("Session expired !! Please log in again.");
+                dispatch(logout({}));
+                return;
+            }
+            const data = await res.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to send message');
+            }
+            console.log("Message sent successfully:", data);
+
+            setMessages((prev) => [...prev, data.data]);
+            setNewMessage('');
+            setMediaFile(null);
+            const fileInput = document.getElementById("media-upload");
+            if (fileInput) fileInput.value = '';
+        } catch (error) {
+            toast.error(error.message || 'Failed to send message');
+        }
     };
+
 
     if (loading) return <div className="text-center mt-5"><Spinner animation="border" /></div>;
 
@@ -132,14 +180,49 @@ const ChatArea = () => {
             <div className="p-2 border-top" style={{ backgroundColor: theme === 'dark' ? '#121212' : '#fff' }}>
                 <Form onSubmit={handleSendMessage}>
                     <div className="d-flex align-items-end border rounded p-2" style={{ backgroundColor: theme === 'dark' ? '#2c2c2c' : '#ffffff' }}>
+                        {mediaFile && (
+                            <div className="mt-2">
+                                {mediaFile.type.startsWith("image/") ? (
+                                    <img
+                                        src={URL.createObjectURL(mediaFile)}
+                                        alt="preview"
+                                        className="img-thumbnail"
+                                        style={{ maxHeight: '150px' }}
+                                    />
+                                ) : (
+                                    <video
+                                        src={URL.createObjectURL(mediaFile)}
+                                        controls
+                                        className="img-thumbnail"
+                                        style={{ maxHeight: '150px' }}
+                                    />
+                                )}
+                            </div>
+                        )}
                         <Form.Control
                             as="textarea"
                             rows={1}
                             placeholder="Type a message..."
                             style={{ resize: 'none', border: 'none', boxShadow: 'none', flex: 1 }}
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
                         />
                         <label htmlFor="media-upload" className="btn btn-sm btn-light ms-2 mb-1">📎</label>
-                        <input id="media-upload" type="file" accept="image/*,video/*" style={{ display: 'none' }} />
+                        <input
+                            id="media-upload"
+                            type="file"
+                            accept="image/*,video/*"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                                if (e.target.files.length > 1) {
+                                    toast.warning("Only one media file can be uploaded at a time.");
+                                    e.target.value = ''; // Reset input
+                                    return;
+                                }
+                                setMediaFile(e.target.files[0]);
+                            }}
+                        />
+
                         <Button type="submit" variant="primary" className="ms-2 mb-1">Send</Button>
                     </div>
                 </Form>
@@ -154,7 +237,7 @@ const ChatArea = () => {
                         {messages[messages?.length - 1]?.seenBy?.map(user => (
                             <li key={user._id} className="d-flex align-items-center mb-2">
                                 <img src={`${apiBaseUrl}/${user.profilePic}`} alt={user.username} className="rounded-circle me-2" width={30} height={30} />
-                                <span>{user.fullName}</span>
+                                <span>{user.firstName}</span>
                             </li>
                         ))}
                     </ul>
