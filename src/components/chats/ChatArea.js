@@ -9,7 +9,7 @@ const ChatArea = () => {
     const dispatch = useDispatch();
     const { chatId } = useParams();
     const token = useSelector((state) => state.auth.token);
-    const currentUserId = useSelector((state) => state.auth.user?._id);
+    const currentUserId = useSelector((state) => state.auth.user?.id);
     const theme = useSelector((state) => state.theme.mode);
     const apiBaseUrl = useSelector((state) => state.config.apiBaseUrl);
     const [messages, setMessages] = useState([]);
@@ -32,7 +32,7 @@ const ChatArea = () => {
                     return;
                 }
                 const data = await res.json();
-                console.log(data);
+                console.log("-----------", data);
                 if (!data.success) throw new Error(data.message);
                 setMessages(data.data.messages);
                 setChatUser(data.data.chatUser);
@@ -42,13 +42,9 @@ const ChatArea = () => {
                 setLoading(false);
             }
         };
-
-
         fetchMessages();
     }, [chatId, token, apiBaseUrl]);
 
-    console.log("messages", messages);
-    console.log("chatUser", chatUser);
     const themeStyles = {
         backgroundColor: theme === 'dark' ? '#121212' : '#f8f9fa',
         color: theme === 'dark' ? '#f1f1f1' : '#212529',
@@ -56,19 +52,24 @@ const ChatArea = () => {
 
     const renderMessages = () => {
         return messages?.map((msg, index) => {
-            const isCurrentUser = msg.senderId === currentUserId;
+            const isCurrentUser = msg.senderId._id === currentUserId;
             const previous = messages[index - 1];
-            const showAvatar = !previous || previous.senderId !== msg.senderId;
+            const showAvatar = !previous || previous.senderId._id !== msg.senderId._id;
             const isLast = index === messages.length - 1;
-
             return (
                 <div key={msg._id} className={`d-flex ${isCurrentUser ? 'justify-content-end' : 'justify-content-start'} mb-2`}>
-                    {!isCurrentUser && showAvatar && (
-                        <img src={`${apiBaseUrl}/${msg.senderId.profilePic}`} alt="avatar" className="rounded-circle me-2" width={40} height={40} />
-                    )}
-                    <div className={`p-2 rounded ${isCurrentUser ? 'bg-primary text-white' : 'bg-light text-dark'}`}>
+                    {!isCurrentUser && showAvatar
+                        ? (<img src={`${apiBaseUrl}/${msg.senderId.profilePic}`} alt="avatar" className="rounded-circle me-2" width={40} height={40} />)
+                        : (<div className='me-2' style={{ width: 40, height: 40 }}></div>)}
+                    <div className={`p-2 rounded ${isCurrentUser ? 'bg-primary text-white' : 'bg-light text-dark'} `}
+                        style={{
+                            maxWidth: '80%',
+                            wordWrap: 'break-word',
+                            overflowWrap: 'break-word',
+                            whiteSpace: 'pre-wrap',
+                        }}>
                         {msg.content}
-                        {msg.mediaUrl && <img src={msg.mediaUrl} alt="media" style={{ maxWidth: '200px' }} />}
+                        {msg.mediaUrl && <img src={`${apiBaseUrl}/${msg.mediaUrl}`} alt="media" style={{ maxWidth: '200px' }} />}
                         {isLast && msg.seenBy?.length > 0 && (
                             <div className="mt-1 d-flex align-items-center">
                                 {msg.seenBy.slice(0, 3).map(user => (
@@ -106,29 +107,43 @@ const ChatArea = () => {
     if (loading) return <div className="text-center mt-5"><Spinner animation="border" /></div>;
 
     return (
-        <Container fluid style={{ ...themeStyles, minHeight: '100vh', padding: '1rem' }}>
-            <div className="d-flex align-items-center mb-3">
+        <Container
+            fluid
+            className="chat-area-container d-flex flex-column"
+            style={{ height: '100vh', padding: 0, ...themeStyles }}
+        >
+            <div className="p-3 border-bottom d-flex align-items-center" style={{
+                boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
+                zIndex: 2,
+                position: 'relative',
+            }} >
                 <Button variant="outline-secondary" className="me-3" onClick={() => window.history.back()}>&larr;</Button>
                 <img src={`${apiBaseUrl}/${chatUser?.profilePic}`} alt="avatar" className="rounded-circle me-2" width={50} height={50} />
                 <div>
-                    <div style={{ fontWeight: 'bold' }}>{chatUser?.fullName}</div>
+                    <div style={{ fontWeight: 'bold' }}>{chatUser?.name}</div>
                     <div className="text-muted small">@{chatUser?.username}</div>
                 </div>
             </div>
 
-            <div>{renderMessages()}</div>
+            <div className="chat-messages flex-grow-1 overflow-auto px-3 py-2" style={{ minHeight: 0 }}>
+                {renderMessages()}
+            </div>
 
-            <Form onSubmit={handleSendMessage} className="mt-3">
-                <Form.Group controlId="messageText">
-                    <Form.Control as="textarea" rows={2} placeholder="Type a message..." />
-                </Form.Group>
-                <div className="d-flex justify-content-between mt-2">
-                    <Form.Group>
-                        <Form.Control type="file" accept="image/*,video/*" />
-                    </Form.Group>
-                    <Button type="submit">Send</Button>
-                </div>
-            </Form>
+            <div className="p-2 border-top" style={{ backgroundColor: theme === 'dark' ? '#121212' : '#fff' }}>
+                <Form onSubmit={handleSendMessage}>
+                    <div className="d-flex align-items-end border rounded p-2" style={{ backgroundColor: theme === 'dark' ? '#2c2c2c' : '#ffffff' }}>
+                        <Form.Control
+                            as="textarea"
+                            rows={1}
+                            placeholder="Type a message..."
+                            style={{ resize: 'none', border: 'none', boxShadow: 'none', flex: 1 }}
+                        />
+                        <label htmlFor="media-upload" className="btn btn-sm btn-light ms-2 mb-1">📎</label>
+                        <input id="media-upload" type="file" accept="image/*,video/*" style={{ display: 'none' }} />
+                        <Button type="submit" variant="primary" className="ms-2 mb-1">Send</Button>
+                    </div>
+                </Form>
+            </div>
 
             <Modal show={showSeenBy} onHide={() => setShowSeenBy(false)}>
                 <Modal.Header closeButton>
@@ -138,13 +153,7 @@ const ChatArea = () => {
                     <ul className="list-unstyled">
                         {messages[messages?.length - 1]?.seenBy?.map(user => (
                             <li key={user._id} className="d-flex align-items-center mb-2">
-                                <img
-                                    src={`${apiBaseUrl}/${user.profilePic}`}
-                                    alt={user.username}
-                                    className="rounded-circle me-2"
-                                    width={30}
-                                    height={30}
-                                />
+                                <img src={`${apiBaseUrl}/${user.profilePic}`} alt={user.username} className="rounded-circle me-2" width={30} height={30} />
                                 <span>{user.fullName}</span>
                             </li>
                         ))}
@@ -152,6 +161,7 @@ const ChatArea = () => {
                 </Modal.Body>
             </Modal>
         </Container>
+
     );
 };
 
