@@ -45,7 +45,7 @@ const ChatArea = () => {
             }
         };
         fetchMessages();
-    }, [chatId, token, apiBaseUrl]);
+    }, [chatId, token, apiBaseUrl,dispatch]);
 
     const themeStyles = {
         backgroundColor: theme === 'dark' ? '#121212' : '#f8f9fa',
