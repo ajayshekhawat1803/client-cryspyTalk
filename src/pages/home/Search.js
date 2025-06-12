@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Container, Row, Col, Card, Button, Form, Spinner, Alert } from 'react-bootstrap';
 import { toast } from 'react-toastify';
@@ -27,7 +27,7 @@ const UserSearch = () => {
         }
     };
 
-    const fetchUsers = async (searchTerm) => {
+    const fetchUsers = useCallback(async (searchTerm) => {
         if (!searchTerm.trim()) return;
         setSearching(true);
         try {
@@ -49,7 +49,15 @@ const UserSearch = () => {
         } finally {
             setSearching(false);
         }
-    };
+    }, [apiBaseUrl, token, dispatch]); 
+
+    useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            if (query.trim()) fetchUsers(query);
+        }, 500);
+
+        return () => clearTimeout(delayDebounce);
+    }, [query, fetchUsers]);
 
     const handleSendRequest = async (userId) => {
         try {
@@ -68,13 +76,6 @@ const UserSearch = () => {
             toast.error(err.message || "Failed to send request.");
         }
     };
-
-    useEffect(() => {
-        const delayDebounce = setTimeout(() => {
-            if (query.trim()) fetchUsers(query);
-        }, 500);
-        return () => clearTimeout(delayDebounce);
-    }, [query]);
 
     return (
         <Container style={themeStyles.container}>

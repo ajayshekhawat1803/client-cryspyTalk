@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Container,
@@ -33,7 +33,7 @@ const Settings = () => {
     const [profilePreview, setProfilePreview] = useState(null);
     const [profilePicFile, setProfilePicFile] = useState(null);
 
-    const fetchUser = async () => {
+    const fetchUser = useCallback(async () => {
         try {
             const res = await fetch(`${apiBaseUrl}/user/get-logged-user`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -55,10 +55,10 @@ const Settings = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [apiBaseUrl, token, dispatch]);
     useEffect(() => {
         fetchUser();
-    }, [token, apiBaseUrl, dispatch]);
+    }, [fetchUser]);
 
     const handleInputChange = async (e) => {
         const { name, value } = e.target;
