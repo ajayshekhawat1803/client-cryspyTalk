@@ -165,7 +165,7 @@ const Settings = () => {
             const result = await res.json();
             if (result.success) {
                 toast.success('Profile picture updated');
-                setUser((prev) => ({ ...prev, profilePic: result.profilePic }));
+                setUser((prev) => ({ ...prev, profilePic: result?.data?.profilePic }));
                 setProfilePicFile(null);
                 setProfilePreview(null);
             } else {
