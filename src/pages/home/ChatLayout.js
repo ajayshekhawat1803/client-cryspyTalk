@@ -4,6 +4,7 @@ import AllChats from "./AllChats";
 import Sidebar from "../../components/sidebar";
 import Header from "../../components/header/index";
 import FriendRequests from "../../components/chats/FriendReuqests";
+import SearchUsers from "./Search";
 
 const ChatLayout = () => {
     const [activeSection, setActiveSection] = useState("all");
@@ -25,7 +26,7 @@ const ChatLayout = () => {
     const renderContent = () => {
         switch (activeSection) {
             case "search":
-                return <>Search box will be here</>;
+                return <SearchUsers />;
             case "settings":
                 return <>Settings will be here</>;
             case "favourites":
