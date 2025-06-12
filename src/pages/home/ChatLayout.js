@@ -5,6 +5,7 @@ import Sidebar from "../../components/sidebar";
 import Header from "../../components/header/index";
 import FriendRequests from "../../components/chats/FriendReuqests";
 import SearchUsers from "./Search";
+import Settings from "./Settings";
 
 const ChatLayout = () => {
     const [activeSection, setActiveSection] = useState("all");
@@ -28,7 +29,7 @@ const ChatLayout = () => {
             case "search":
                 return <SearchUsers />;
             case "settings":
-                return <>Settings will be here</>;
+                return <Settings />;
             case "favourites":
                 return <>Favourites will be here</>;
             case "archived":

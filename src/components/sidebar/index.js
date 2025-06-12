@@ -3,12 +3,43 @@ import { FaSearch, FaCog, FaComments, FaStar, FaArchive, FaSun, FaMoon, FaUserFr
 import { useSelector, useDispatch } from 'react-redux';
 import { toggleTheme } from '../../features/theme/themeSlice';
 import './sidebar.css';
+import { selectApiBaseUrl } from '../../features/config/configSlice';
+import { logout } from '../../features/auth/authSlice';
+import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 const Sidebar = ({ onSelect, activeSection }) => {
-    const profilePic = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+    const [profilePic, setProfilePic] = useState('https://cdn-icons-png.flaticon.com/512/3135/3135715.png');
     const theme = useSelector((state) => state.theme.mode);
     const user = useSelector((state) => state.auth.user);
     const dispatch = useDispatch();
+    const token = useSelector((state) => state.auth.token);
+    const apiBaseUrl = useSelector(selectApiBaseUrl);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await fetch(`${apiBaseUrl}/user/get-logged-user`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (res.status === 401) {
+                    toast.error('Session expired');
+                    dispatch(logout());
+                    return;
+                }
+                const result = await res.json();
+                if (result.success) {
+                    setProfilePic(`${apiBaseUrl}/${result?.data?.profilePic}` || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png');
+                } else {
+                    toast.error('Failed to fetch user');
+                }
+            } catch (err) {
+                toast.error('Error fetching user');
+            }
+        };
+        fetchUser();
+    }, [apiBaseUrl, token, dispatch]);
+
 
     return (
         <div
@@ -21,7 +52,7 @@ const Sidebar = ({ onSelect, activeSection }) => {
                 overflowY: 'auto',
             }}
         >
-            <div className='flex-grow-1'> 
+            <div className='flex-grow-1'>
                 {/* Top Nav */}
                 <Nav className="flex-column mb-4">
                     <Nav.Link
