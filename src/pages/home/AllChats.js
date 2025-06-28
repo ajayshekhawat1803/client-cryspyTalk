@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Spinner, Alert, Container, ListGroup, Image, Badge } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { selectApiBaseUrl } from '../../features/config/configSlice';
 import { logout } from '../../features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
+import { SOCKET_EVENTS } from '../../socket/socketEvents';
+import socket from '../../socket/socket';
 
 const AllChats = () => {
     const dispatch = useDispatch();
@@ -17,41 +19,66 @@ const AllChats = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const fetchChats = useCallback(async () => {
+        try {
+            const response = await fetch(`${apiBaseUrl}/chats/get-all-chats`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.status === 401) {
+                toast.error('Session expired. Please log in again.');
+                dispatch(logout({}));
+                return;
+            }
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to fetch chats.');
+            }
+
+            setChats(result.data || []);
+        } catch (err) {
+            console.error(err);
+            setError('Unable to load chats.');
+            toast.error(err.message || 'Something went wrong.');
+        } finally {
+            setLoading(false);
+        }
+    }, [apiBaseUrl, token, dispatch]);
+
+
     useEffect(() => {
-        const fetchChats = async () => {
-            try {
-                const response = await fetch(`${apiBaseUrl}/chats/get-all-chats`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+        fetchChats();
+    }, [fetchChats]);
 
-                if (response.status === 401) {
-                    toast.error('Session expired. Please log in again.');
-                    dispatch(logout({}));
-                    return;
-                }
-
-                const result = await response.json();
-
-                if (!result.success) {
-                    throw new Error(result.message || 'Failed to fetch chats.');
-                }
-
-                setChats(result.data || []);
-            } catch (err) {
-                console.error(err);
-                setError('Unable to load chats.');
-                toast.error(err.message || 'Something went wrong.');
-            } finally {
-                setLoading(false);
+    useEffect(() => {
+        const handleNewMessage = (message) => {
+            if (!message?.chatId) return;
+            const chatExists = chats.some(chat => chat._id === message.chatId);
+            if (chatExists) {
+                fetchChats();
             }
         };
+        socket.on(SOCKET_EVENTS.CHAT.NEW_MESSAGE, handleNewMessage);
+        return () => {
+            socket.off(SOCKET_EVENTS.CHAT.NEW_MESSAGE, handleNewMessage);
+        };
+    }, [chats,fetchChats]);
 
-        fetchChats();
-    }, [dispatch, apiBaseUrl, token]);
+
+    chats.forEach(chat => {
+        if (chat) {
+            socket.emit(SOCKET_EVENTS.CHAT.JOIN, {
+                chatId: chat._id,
+                msg: `User ${user.id} joined chat ${chat._id}`
+            });
+        }
+    });
 
     const themeStyles = {
         container: {

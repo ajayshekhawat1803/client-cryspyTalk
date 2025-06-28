@@ -45,7 +45,7 @@ function Login() {
             dispatch(showLoader());
             return;
         }
-        
+
         try {
             dispatch(showLoader());
             const response = await fetch(`${apiBaseUrl}/auth/login`, {

@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import './ChatArea.css';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Container, Spinner, Modal, Form, Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { logout } from '../../features/auth/authSlice';
+import socket from '../../socket/socket';
+import { SOCKET_EVENTS } from '../../socket/socketEvents';
 
 const ChatArea = () => {
     const dispatch = useDispatch();
@@ -19,9 +22,41 @@ const ChatArea = () => {
     const [newMessage, setNewMessage] = useState('');
     const [mediaFile, setMediaFile] = useState(null);
 
+    const [inputFocused, setInputFocused] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
+    const [otherTyping, setOtherTyping] = useState(false);
+    const typingTimeoutRef = useRef(null);
+
+
+    // Refs for scrolling
+    const messagesEndRef = useRef(null);
+    const chatContainerRef = useRef(null);
+    const messageInputRef = useRef(null);
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        requestAnimationFrame(() => {
+            const container = chatContainerRef.current;
+            if (!container) return;
+            container.scrollTop = container.scrollHeight;
+        });
+    };
+    const isUserAtBottom = () => {
+        const container = chatContainerRef.current;
+        if (!container) return false;
+        return container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
+    };
+
+
+
 
     useEffect(() => {
+        if (!loading) {
+            scrollToBottom();
+        }
         const fetchMessages = async () => {
+            if (chatId) {
+                socket.emit(SOCKET_EVENTS.CHAT.JOIN, { chatId, msg: `User ${currentUserId} joined to chat ${chatId}` });
+            }
             try {
                 const res = await fetch(`${apiBaseUrl}/messages/get-messages/${chatId}`, {
                     headers: {
@@ -45,7 +80,22 @@ const ChatArea = () => {
             }
         };
         fetchMessages();
-    }, [chatId, token, apiBaseUrl,dispatch]);
+        // Listen for new messages
+        socket.on(SOCKET_EVENTS.CHAT.NEW_MESSAGE, (message) => {
+            // console.log("New message received:", message);
+            const isFromMe = message.senderId._id.toString() === currentUserId;
+            if (message.chatId === chatId && !isFromMe) {
+                setMessages((prev) => [...prev, message]);
+                if (isUserAtBottom()) {
+                    setTimeout(() => scrollToBottom(), 100);
+                }
+            }
+        });
+        return () => {
+            socket.off(SOCKET_EVENTS.CHAT.NEW_MESSAGE);
+        };
+    }, [chatId, token, apiBaseUrl, dispatch, currentUserId, loading]);
+
 
     const themeStyles = {
         backgroundColor: theme === 'dark' ? '#121212' : '#f8f9fa',
@@ -75,15 +125,19 @@ const ChatArea = () => {
                         {isLast && msg.seenBy?.length > 0 && (
                             <div className="mt-1 d-flex align-items-center">
                                 {msg.seenBy.slice(0, 3).map(user => (
-                                    <img
-                                        key={user._id}
-                                        src={`${apiBaseUrl}/${user.profilePic}`}
-                                        alt={user.username}
-                                        className="rounded-circle me-1"
-                                        width={20}
-                                        height={20}
-                                        onClick={() => setShowSeenBy(true)}
-                                    />
+                                    <>
+                                        <span style={{ fontSize: '0.6rem', color: '#999', fontStyle: 'italic', fontWeight: '600' }}
+                                            onClick={() => setShowSeenBy(true)}>Seen by  </span>
+                                        <img
+                                            key={user._id}
+                                            src={`${apiBaseUrl}/${user.profilePic}`}
+                                            alt={user.username}
+                                            className="rounded-circle me-1"
+                                            width={20}
+                                            height={20}
+                                            onClick={() => setShowSeenBy(true)}
+                                        />
+                                    </>
                                 ))}
                                 {msg.seenBy.length > 3 && (
                                     <span
@@ -119,7 +173,7 @@ const ChatArea = () => {
         if (mediaFile) {
             formData.append("media", mediaFile);
         }
-        console.log("Sending message with content:", newMessage, "and media file:", mediaFile)
+        // console.log("Sending message with content:", newMessage, "and media file:", mediaFile)
 
         try {
             const res = await fetch(`${apiBaseUrl}/messages/send-message`, {
@@ -139,17 +193,104 @@ const ChatArea = () => {
             if (!data.success) {
                 throw new Error(data.message || 'Failed to send message');
             }
-            console.log("Message sent successfully:", data);
+            // console.log("Message sent successfully:", data);
 
             setMessages((prev) => [...prev, data.data]);
+            scrollToBottom();
             setNewMessage('');
             setMediaFile(null);
+            requestAnimationFrame(() => {
+                messageInputRef.current?.focus();
+            });
             const fileInput = document.getElementById("media-upload");
             if (fileInput) fileInput.value = '';
         } catch (error) {
             toast.error(error.message || 'Failed to send message');
         }
     };
+
+    useEffect(() => {
+        if (inputFocused) {
+            setTimeout(() => scrollToBottom(), 100);
+        }
+    }, [inputFocused, isTyping, otherTyping]);
+
+    const handleTypingStatusOnChange = (e) => {
+        const value = e.target.value;
+        setNewMessage(value);
+        if (!isTyping) {
+            setIsTyping(true);
+            socket.emit(SOCKET_EVENTS.CHAT.TYPING, { chatId });
+        }
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => {
+            setIsTyping(false);
+            socket.emit(SOCKET_EVENTS.CHAT.STOP_TYPING, { chatId });
+        }, 1500);
+    }
+
+    useEffect(() => {
+        const handleTyping = ({ chatId: typingChatId }) => {
+            if (typingChatId === chatId) {
+                setOtherTyping(true);
+            }
+        };
+        const handleStopTyping = ({ chatId: stopTypingChatId }) => {
+            if (stopTypingChatId === chatId) {
+                setOtherTyping(false);
+            }
+        };
+        socket.on(SOCKET_EVENTS.CHAT.TYPING, handleTyping);
+        socket.on(SOCKET_EVENTS.CHAT.STOP_TYPING, handleStopTyping);
+        // ✅ Clean up on unmount or chat change
+        return () => {
+            socket.off(SOCKET_EVENTS.CHAT.TYPING, handleTyping);
+            socket.off(SOCKET_EVENTS.CHAT.STOP_TYPING, handleStopTyping);
+        };
+    }, [chatId]);
+
+    useEffect(() => {
+        if (messages.length === 0) return;
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage.senderId._id === currentUserId) return;      // Don't emit seen for messages sent by me
+        const alreadySeen = lastMessage.seenBy.some(u => u._id === currentUserId);    // Only emit if I haven't already seen it
+        if (!alreadySeen && isUserAtBottom()) {
+            socket.emit(SOCKET_EVENTS.CHAT.SEEN, {
+                chatId,
+                userId: currentUserId
+            });
+        }
+    }, [messages, chatId, currentUserId]);
+
+
+    useEffect(() => {
+        const handleSeenUpdate = ({ chatId: seenChatId, userId: seenUserId, firstName, profilePic }) => {
+            if (seenChatId === chatId && seenUserId !== currentUserId) {
+                // console.log(`User ${seenUserId} has seen messages in chat ${seenChatId}`);
+                setMessages(prevMessages => {
+                    // console.log("Updating seen status for previous messages:", prevMessages);
+                    return prevMessages.map((msg) => {
+                        if (!msg.seenBy.some(u => u._id === seenUserId) && seenUserId !== currentUserId) {
+                            return {
+                                ...msg,
+                                seenBy: [...msg.seenBy, { _id: seenUserId, firstName, profilePic }]
+                            };
+                        }
+                        return msg;
+                    });
+                }
+                );
+            }
+        };
+        socket.on(SOCKET_EVENTS.CHAT.UPDATE_SEEN, handleSeenUpdate);
+        return () => {
+            socket.off(SOCKET_EVENTS.CHAT.UPDATE_SEEN, handleSeenUpdate);
+        };
+    }, [chatId, currentUserId]);
+
+
+
+
 
 
     if (loading) return <div className="text-center mt-5"><Spinner animation="border" /></div>;
@@ -173,8 +314,19 @@ const ChatArea = () => {
                 </div>
             </div>
 
-            <div className="chat-messages flex-grow-1 overflow-auto px-3 py-2" style={{ minHeight: 0 }}>
+            <div ref={chatContainerRef} className="chat-messages flex-grow-1 overflow-auto px-3 py-2" style={{ minHeight: 0 }}>
                 {renderMessages()}
+                {otherTyping && (
+                    <div className="d-flex justify-content-start mb-2">
+                        <div className="me-2" style={{ width: 40, height: 40 }}></div>
+                        <div className="typing-indicator d-flex align-items-center px-3 py-1 rounded bg-light text-muted">
+                            <div className="typing-dots">
+                                Typing<span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                <div ref={messagesEndRef} />
             </div>
 
             <div className="p-2 border-top" style={{ backgroundColor: theme === 'dark' ? '#121212' : '#fff' }}>
@@ -201,11 +353,19 @@ const ChatArea = () => {
                         )}
                         <Form.Control
                             as="textarea"
+                            ref={messageInputRef}
                             rows={1}
                             placeholder="Type a message..."
                             style={{ resize: 'none', border: 'none', boxShadow: 'none', flex: 1 }}
                             value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
+                            onChange={(e) => handleTypingStatusOnChange(e)}
+                            onFocus={() => setInputFocused(true)}
+                            onBlur={() => setInputFocused(false)} // user manually blurred
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    handleSendMessage(e);
+                                }
+                            }}
                         />
                         <label htmlFor="media-upload" className="btn btn-sm btn-light ms-2 mb-1">📎</label>
                         <input
