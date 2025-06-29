@@ -38,7 +38,7 @@ const Header = ({ toggleSidebar }) => {
             <img src={appLogo} alt="Logo" style={styles.logo} />
 
             <FaBars
-                className="d-block d-md-none"
+                className="d-block d-md-block d-lg-none hamburger"
                 onClick={toggleSidebar}
                 style={styles.hamburger}
             />

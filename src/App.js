@@ -6,7 +6,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./components/PrivateRoute";
 import PublicRoute from "./components/PublicRoute";
-import Logout from "./pages/Logout";
 import { ToastContainer } from "react-toastify";
 import { useSelector } from "react-redux";
 import LoaderComponent from "./components/loader";
@@ -20,8 +19,9 @@ function App() {
   const { user } = useSelector((state) => state.auth);
   const currentUserId = useSelector((state) => state.auth.user?.id);
   if (user && currentUserId) {
-    socket.emit(SOCKET_EVENTS.USER.CONNECTED, currentUserId);
+    socket.emit(SOCKET_EVENTS.USER.CONNECTED, { userId: currentUserId });
   }
+
   return (
     <BrowserRouter>
       <ToastContainer style={{ zIndex: 99999999 }} />
@@ -34,7 +34,6 @@ function App() {
         {/* Protected route: only accessible if logged in */}
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/chat/:chatId" element={<ProtectedRoute><ChatArea /></ProtectedRoute>} />
-        <Route path="/logout" element={<ProtectedRoute><Logout /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

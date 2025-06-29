@@ -49,22 +49,26 @@ const ChatLayout = () => {
                 showSidebar={showSidebar}
                 toggleSidebar={() => setShowSidebar((prev) => !prev)}
             />
-            <Container fluid className="g-0 w-100 h-100">
+            <Container fluid className="g-0 w-100 h-100" >
                 <Row className="g-0 w-100 h-100" style={{ position: 'relative' }}>
                     {showSidebar && (
                         <Col md="auto"
                             style={
                                 window.innerWidth < 950
                                     ? {
-                                        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                                        position: 'absolute', top: 0, left: 0, bottom: 20, width: '100%', height: '90%',
                                         WebkitBackdropFilter: 'blur(8px)',
-                                        backdropFilter: 'blur(8px)',
+                                        backdropFilter: 'blur(12px)',
                                         boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                                        zIndex: 999999,
                                     }
-                                    : {}
+                                    : {
+                                        height:'92%',
+                                    }
+
                             }
                         >
-                            <div className="sidebar-container" >
+                            <div className="sidebar-container" style={{height:'100%'}}>
                                 <Sidebar
                                     onSelect={(section) => {
                                         setActiveSection(section);
@@ -82,7 +86,7 @@ const ChatLayout = () => {
                     </Col>
                 </Row>
             </Container>
-        </div>
+        </div >
     );
 };
 

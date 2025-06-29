@@ -14,12 +14,14 @@ import {
 import { toast } from 'react-toastify';
 import { logout } from '../../features/auth/authSlice';
 import { selectApiBaseUrl } from '../../features/config/configSlice';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
     const dispatch = useDispatch();
     const token = useSelector((state) => state.auth.token);
     const theme = useSelector((state) => state.theme.mode);
     const apiBaseUrl = useSelector(selectApiBaseUrl);
+    const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
@@ -174,6 +176,12 @@ const Settings = () => {
         } catch (err) {
             toast.error('Error uploading profile picture');
         }
+    };
+
+    const handleLogout = () => {
+        dispatch(logout({}));
+        toast.success("Logged out!");
+        navigate("/login");
     };
 
     if (loading) return <Spinner animation="border" className="mt-5 d-block mx-auto" />;
@@ -335,6 +343,11 @@ const Settings = () => {
                                             </Button>
                                         </>
                                     )}
+                                </div>
+                                <div className="d-flex justify-content-end mt-3">
+                                    <Button variant="danger" onClick={handleLogout}>
+                                        Logout
+                                    </Button>
                                 </div>
                             </Form>
                         </Col>
