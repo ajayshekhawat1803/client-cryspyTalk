@@ -196,11 +196,14 @@ const Settings = () => {
         >
             <Container>
                 <Card
-                    className="p-4 shadow-lg"
+                    className="p-4 shadow-lg scroll-card"
                     style={{
                         borderRadius: '1.5rem',
                         backgroundColor: theme === 'dark' ? '#1e1e2f' : '#ffffff',
                         color: theme === 'dark' ? '#f1f1f1' : 'inherit',
+                        overflowY: 'auto',
+                        minHeight: '50vh',
+                        height: '80vh',
                     }}
                 >
                     <Row className="align-items-center">
@@ -398,7 +401,7 @@ const Settings = () => {
                     </Modal.Footer>
                 </Modal>
             </Container>
-        </div>
+        </div >
     );
 };
 
