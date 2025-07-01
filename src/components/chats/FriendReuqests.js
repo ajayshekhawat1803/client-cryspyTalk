@@ -30,8 +30,6 @@ const FriendRequests = () => {
                     return;
                 }
                 const result = await response.json();
-                console.log(result);
-
                 if (!result.success) {
                     toast.error(result.message || "Failed to fetch requests");
                     setRequests([]);
@@ -41,7 +39,6 @@ const FriendRequests = () => {
             } catch (err) {
                 toast.error("Something went wrong while fetching requests.");
                 setError("Could not load friend requests.");
-                console.error(err);
             } finally {
                 setLoading(false);
             }
@@ -107,6 +104,7 @@ const FriendRequests = () => {
         container: {
             backgroundColor: theme === 'dark' ? '#121212' : '#f8f9fa',
             minHeight: '100vh',
+            minHeight: '100dvh',
             paddingTop: '2rem',
         },
     };
@@ -125,7 +123,7 @@ const FriendRequests = () => {
                             <Card.Body>
                                 <Card.Title className="d-flex align-items-center gap-2">
                                     <img
-                                        src={req.senderId?.profilePic? `${apiBaseUrl}/${req.senderId?.profilePic}`: '/default-avatar.png'} // fallback image
+                                        src={req.senderId?.profilePic? `${apiBaseUrl}/${req.senderId?.profilePic}`: '/default-avatar.png'} 
                                         alt="Profile"
                                         className="rounded-circle"
                                         width={40}

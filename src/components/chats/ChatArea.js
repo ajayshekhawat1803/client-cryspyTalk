@@ -82,7 +82,6 @@ const ChatArea = () => {
         fetchMessages();
         // Listen for new messages
         socket.on(SOCKET_EVENTS.CHAT.NEW_MESSAGE, (message) => {
-            // console.log("New message received:", message);
             const isFromMe = message.senderId._id.toString() === currentUserId;
             if (message.chatId === chatId && !isFromMe) {
                 setMessages((prev) => [...prev, message]);
@@ -173,7 +172,6 @@ const ChatArea = () => {
         if (mediaFile) {
             formData.append("media", mediaFile);
         }
-        // console.log("Sending message with content:", newMessage, "and media file:", mediaFile)
 
         try {
             const res = await fetch(`${apiBaseUrl}/messages/send-message`, {
@@ -193,7 +191,6 @@ const ChatArea = () => {
             if (!data.success) {
                 throw new Error(data.message || 'Failed to send message');
             }
-            // console.log("Message sent successfully:", data);
 
             setMessages((prev) => [...prev, data.data]);
             scrollToBottom();
@@ -242,7 +239,7 @@ const ChatArea = () => {
         };
         socket.on(SOCKET_EVENTS.CHAT.TYPING, handleTyping);
         socket.on(SOCKET_EVENTS.CHAT.STOP_TYPING, handleStopTyping);
-        // ✅ Clean up on unmount or chat change
+        // Clean up on unmount or chat change
         return () => {
             socket.off(SOCKET_EVENTS.CHAT.TYPING, handleTyping);
             socket.off(SOCKET_EVENTS.CHAT.STOP_TYPING, handleStopTyping);
@@ -299,7 +296,7 @@ const ChatArea = () => {
         <Container
             fluid
             className="chat-area-container d-flex flex-column"
-            style={{ height: '100vh', padding: 0, ...themeStyles }}
+            style={{ height: '100vh',height: '100dvh', padding: 0, ...themeStyles }}
         >
             <div className="p-3 border-bottom d-flex align-items-center" style={{
                 boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)',
@@ -360,7 +357,7 @@ const ChatArea = () => {
                             value={newMessage}
                             onChange={(e) => handleTypingStatusOnChange(e)}
                             onFocus={() => setInputFocused(true)}
-                            onBlur={() => setInputFocused(false)} // user manually blurred
+                            onBlur={() => setInputFocused(false)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     handleSendMessage(e);

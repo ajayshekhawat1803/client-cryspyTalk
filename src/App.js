@@ -13,15 +13,20 @@ import "./App.css";
 import ChatArea from "./components/chats/ChatArea";
 import socket from "./socket/socket";
 import { SOCKET_EVENTS } from "./socket/socketEvents";
+import { useEffect } from "react";
 
 function App() {
   const loading = useSelector((state) => state.loader.loading);
   const { user } = useSelector((state) => state.auth);
+  const theme = useSelector((state) => state.theme.mode);
   const currentUserId = useSelector((state) => state.auth.user?.id);
   if (user && currentUserId) {
     socket.emit(SOCKET_EVENTS.USER.CONNECTED, { userId: currentUserId });
   }
-
+  useEffect(() => {
+    document.body.style.backgroundColor = theme === 'dark' ? '#121212' : '#f8f9fa';
+    document.body.style.color = theme === 'dark' ? '#f1f1f1' : '#000';
+  }, [theme]);
   return (
     <BrowserRouter>
       <ToastContainer style={{ zIndex: 99999999 }} />

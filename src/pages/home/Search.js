@@ -23,6 +23,7 @@ const UserSearch = () => {
         container: {
             backgroundColor: theme === 'dark' ? '#121212' : '#f8f9fa',
             minHeight: '100vh',
+            minHeight: '100dvh',
             paddingTop: '2rem',
         }
     };

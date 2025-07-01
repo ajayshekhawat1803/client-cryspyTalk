@@ -3,7 +3,7 @@ export const SOCKET_EVENTS = {
     JOIN: 'chat:join',                          // User joined a chat room              Done
     LEAVE: 'chat:leave',                        // User left a chat room
     NEW_MESSAGE: 'chat:new_message',            // User sent a message                  // Done
-    RECEIVE_MESSAGE: 'chat:receive_message',    // Message received by others
+    RECEIVE_MESSAGE: 'chat:receive_message',    // Message received by others           
     MESSAGE_EDITED: 'chat:message_edited',      // A message was edited
     MESSAGE_DELETED: 'chat:message_deleted',    // A message was deleted
     TYPING: 'chat:typing',                      // User is typing                       // Done    
@@ -54,14 +54,3 @@ export const SOCKET_EVENTS = {
     ADMIN_USER_SUSPENDED: 'admin:user_suspended',    // Suspend a user
   }
 };
-
-
-
-/*
-INBOX.UPDATE: Auto-refresh inbox on new messages, name updates, etc.
-Use in response to NEW_MESSAGE, CHAT_UPDATED, REQUEST_ACCEPTED etc.
-
-LEAVE: Removes user from room to avoid unnecessary events
-
-https://chatgpt.com/share/685e3e4d-7420-8006-8684-428625982a0b
-*/

@@ -203,7 +203,7 @@ const Settings = () => {
                         color: theme === 'dark' ? '#f1f1f1' : 'inherit',
                         overflowY: 'auto',
                         minHeight: '50vh',
-                        height: '80vh',
+                        height: '75vh',
                     }}
                 >
                     <Row className="align-items-center">
